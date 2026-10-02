@@ -28,7 +28,7 @@ base64 = "0.22"           # Base64URL (No Padding) エンコード
 
 # --- CLI/TUI ---
 clap = { version = "4", features = ["derive"] }  # 引数解析
-dialoguer = "0.11"        # パスワードプロンプト (非表示入力)
+dialoguer = "0.12"        # パスワードプロンプト (非表示入力)
 
 # --- クリップボード ---
 arboard = { version = "3", default-features = false } # テキストのみ

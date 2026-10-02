@@ -13,8 +13,9 @@ For security reports, follow [SECURITY.md](SECURITY.md) instead of public issues
 - `docs/crypto.js`: browser wire-format validation and Web Crypto decryption.
 - `docs/app.js`: transient receiver state and user interactions.
 
-Run the README development commands before opening a PR. Node tests require a
-built debug Rust binary (`cargo build --locked`). The architecture check is a
+Run `mise install --locked` and the README development commands before opening a PR. Node
+tests require a built debug Rust binary (`mise exec -- cargo build --locked`). Run
+`mise exec -- npm run lint:markdown` to check Markdown. The architecture check is a
 lexical guard with explicit boundaries (including no explicit core panic/unwrap),
 not a complete parser or security proof;
 review new pathways manually and extend tests when a rule needs to change.
@@ -27,6 +28,10 @@ pinned by SHA and updated by Dependabot. No contributor agreement is required;
 contributions are licensed under this repository's MIT license.
 
 ## Release procedure
+
+Update the exact versions in `mise.toml`, then refresh `mise.lock` for the supported
+platforms. Verify installation with `mise install --locked`; PR CI also checks that
+its active Rust and Node.js versions match the pins.
 
 1. Update package version and CHANGELOG; finish required checks on the target commit.
 2. Review the intended source/artifacts. The initial release contains source only.
