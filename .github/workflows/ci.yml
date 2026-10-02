@@ -24,9 +24,13 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
-      - name: Rust stable
+      - id: versions
+        name: Read pinned tool versions
+        shell: bash
+        run: scripts/read-mise-versions.sh >> "$GITHUB_OUTPUT"
+      - name: Rust version pinned by mise
         run: |
-          rustup default stable
+          rustup default "${{ steps.versions.outputs.rust }}"
           rustup component add rustfmt clippy
       - run: cargo fmt --check
       - run: cargo clippy --locked --all-targets -- -D warnings
@@ -40,13 +44,25 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+      - id: versions
+        name: Read pinned tool versions
+        shell: bash
+        run: scripts/read-mise-versions.sh >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version: '24'
-      - run: rustup default stable
+          node-version: ${{ steps.versions.outputs.node }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: rustup default "${{ steps.versions.outputs.rust }}"
       - run: cargo build --locked
+      - run: npm ci
       - run: npm run check:architecture
+      - run: npm run lint:markdown
       - run: npm test
+      - name: Verify pinned tool versions are active
+        run: |
+          test "$(rustc --version | awk '{print $2}')" = "${{ steps.versions.outputs.rust }}"
+          test "$(node --version | sed 's/^v//')" = "${{ steps.versions.outputs.node }}"
   audit:
     name: RustSec audit
     runs-on: ubuntu-latest
@@ -55,7 +71,11 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
-      - run: rustup default stable
+      - id: versions
+        name: Read pinned tool versions
+        shell: bash
+        run: scripts/read-mise-versions.sh >> "$GITHUB_OUTPUT"
+      - run: rustup default "${{ steps.versions.outputs.rust }}"
       - run: cargo install cargo-audit --version 0.22.2 --locked --no-default-features
       - run: cargo audit --deny warnings
   deploy:
@@ -75,10 +95,10 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
-      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
-      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: docs
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
