@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none';" />
+  <meta name="referrer" content="no-referrer" />
+  <title>veil-drop — Secret Receiver</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+
+    <!-- ヘッダー -->
+    <header>
+      <h1>🔐 veil-drop</h1>
+      <p class="subtitle">短い秘密を、ブラウザで復号</p>
+    </header>
+
+    <!-- 仕組みと信頼条件 -->
+    <div class="zero-trust-badge" role="note" aria-label="復号の仕組みと注意点">
+      <span class="badge-icon">🛡️</span>
+      <div class="badge-text">
+        <strong>復号はこのブラウザで行います</strong>
+        <p>
+          ページの読み込み後、復号のための通信は行いません。
+          完全な共有URLを持つ人は秘密を読めます。
+          信頼できる相手・経路と、信頼できる受信ページを使ってください。
+        </p>
+      </div>
+    </div>
+
+    <!-- ステータス表示エリア -->
+    <main id="main-content">
+      <!-- 初期状態 -->
+      <div id="state-loading" class="state-panel" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>URLを解析しています...</p>
+      </div>
+
+      <!-- 復号成功 -->
+      <div id="state-success" class="state-panel hidden" aria-live="polite">
+        <div class="success-icon" aria-hidden="true">✅</div>
+        <h2>シークレットを受け取りました</h2>
+
+        <div class="secret-box">
+          <label for="secret-output" class="sr-only">復号されたシークレット</label>
+          <textarea
+            id="secret-output"
+            readonly
+            rows="4"
+            aria-label="復号されたシークレット（読み取り専用）"
+          ></textarea>
+        </div>
+
+        <button id="copy-btn" class="btn-primary" type="button">
+          📋 クリップボードにコピー
+        </button>
+        <p id="copy-feedback" class="copy-feedback hidden" aria-live="assertive">
+          コピーしました。
+        </p>
+
+        <div class="warning-box" role="alert">
+          開いたURLから鍵を取り除きました。再読み込みすると表示は消えます。
+          元の共有URLがあれば再び復号できます。有効期限や一度限りの制限はありません。
+        </div>
+        <button id="clear-btn" class="btn-secondary" type="button">表示を消す</button>
+      </div>
+
+      <div id="state-cleared" class="state-panel hidden" aria-live="polite">
+        <h2>表示を消しました</h2>
+        <p>クリップボードや元の共有URLは残ります。必要に応じてご自身で管理してください。</p>
+      </div>
+
+      <!-- エラー -->
+      <div id="state-error" class="state-panel hidden" role="alert" aria-live="assertive">
+        <div class="error-icon" aria-hidden="true">❌</div>
+        <h2>復号に失敗しました</h2>
+        <p id="error-message" class="error-message"></p>
+        <p class="error-hint">
+          URLが正しくコピーされているか確認してください。<br />
+          URLの <code>#</code> 以降が欠けていると復号できません。
+        </p>
+      </div>
+
+      <!-- URL なし -->
+      <div id="state-no-payload" class="state-panel hidden">
+        <div class="info-icon" aria-hidden="true">ℹ️</div>
+        <h2>シークレットが見つかりません</h2>
+        <p>
+          このページは <code>veil-drop</code> CLIで生成されたURLからアクセスしてください。<br />
+          URLに <code>#payload=...&amp;key=...</code> が含まれている必要があります。
+        </p>
+        <a
+          href="https://github.com/mt4110/veil-drop"
+          class="btn-secondary"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          📖 CLIのセットアップ方法を見る
+        </a>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        <a href="https://github.com/mt4110/veil-drop" target="_blank" rel="noopener noreferrer">
+          veil-drop
+        </a>
+        — Open Source · MIT License · 静的ページ・秘密を保存するバックエンドなし
+      </p>
+    </footer>
+
+  </div>
+
+  <noscript>秘密を復号するにはJavaScriptを有効にしてください。</noscript>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

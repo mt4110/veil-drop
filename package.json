@@ -1,0 +1,10 @@
+{
+  "name": "veil-drop-receiver-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check:architecture": "node scripts/check-architecture.mjs"
+  },
+  "engines": { "node": ">=22" }
+}

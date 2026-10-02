@@ -1,0 +1,48 @@
+[package]
+name = "veil-drop"
+version = "0.1.0"
+edition = "2021"
+description = "Encrypt short secrets into shareable URL fragments with a static browser receiver"
+license = "MIT"
+repository = "https://github.com/mt4110/veil-drop"
+homepage = "https://mt4110.github.io/veil-drop/"
+readme = "README.md"
+keywords = ["security", "encryption", "cli", "aes-gcm", "secrets"]
+
+# ライブラリとして他クレートから組み込める Library-First 設計
+[lib]
+name = "veil_drop"
+path = "src/lib.rs"
+
+# CLIバイナリ
+[[bin]]
+name = "veil-drop"
+path = "src/bin/veil-drop.rs"
+
+[dependencies]
+# --- 暗号化 ---
+aes-gcm = "0.10"          # AES-256-GCM (AEAD)
+
+# --- エンコーディング ---
+base64 = "0.22"           # Base64URL (No Padding) エンコード
+
+# --- CLI/TUI ---
+clap = { version = "4", features = ["derive"] }  # 引数解析
+dialoguer = "0.11"        # パスワードプロンプト (非表示入力)
+
+# --- クリップボード ---
+arboard = { version = "3", default-features = false } # テキストのみ
+url = "2.5"              # 標準URLパーサーで受信先を検証
+
+# --- エラーハンドリング ---
+anyhow = "1"              # エラー伝播の簡略化
+thiserror = "1"           # ライブラリ向けエラー型定義
+
+[dev-dependencies]
+# テスト用
+hex = "0.4"               # バイト列の可読化
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true              # バイナリサイズ削減

@@ -1,0 +1,24 @@
+name: Bug report
+description: Report reproducible behavior with synthetic data only.
+body:
+  - type: markdown
+    attributes:
+      value: "For vulnerabilities, use private reporting from SECURITY.md. Never include real secrets or share URLs."
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and observed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce with synthetic data
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Version, operating system, and browser
+    validations:
+      required: true
