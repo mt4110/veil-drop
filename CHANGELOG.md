@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Make Japanese the default README and add an English version
+  with language links at the top of both files.
+- Pin Rust and Node.js with mise and check the same versions in CI; record
+  platform-specific Node.js URLs and checksums.
+- Lint project documentation and contribution templates with MarkdownLint in CI.
+
 ## 0.1.0 — 2026-10-02
 
 Initial source release.
