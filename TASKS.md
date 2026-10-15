@@ -23,8 +23,10 @@ Follow CONTRIBUTING.md; do not treat this implementation checklist as proof of d
 
 ## Future changes requiring a separate decision
 
-Ubuntu 24.04 x86_64 GNU distribution is prepared as a CI candidate only.
-Publication version, signed tag and Release assets require a separate decision.
+Version 0.1.1 prepares the Ubuntu 24.04 x86_64 GNU distribution as an unpublished candidate.
+Before publication, merge the reviewed preparation PR and rebuild/verify its final main SHA.
+A signed tag and Release publication require separate approval. Preserve the published
+v0.1.0 and the earlier `ubuntu-gnu-candidate-41ef967` draft and assets.
 
 - Independent security review before claiming suitability for high-value secrets.
 - An HTTP-header-capable self-host deployment if frame-ancestors protection is needed.

@@ -10,7 +10,7 @@ in the recipient's browser. There is no backend for storing secrets.
 [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [MIT license](LICENSE)
 
 > **The complete URL is a secret. Anyone who has it can decrypt the text.**
-> This is an experimental v0.1.0 tool, not an independently audited secret manager.
+> This is an experimental tool, not an independently audited secret manager.
 > Links do not expire, cannot be revoked, and are not limited to one opening.
 
 ## Install
@@ -27,8 +27,8 @@ veil-drop --version
 ```
 
 The project is source-only: there are no prebuilt binaries or crates.io package.
-An [Ubuntu 24.04 x86_64 GNU ZIP candidate](docs/install-linux.md) is being prepared
-as a reviewed CI artifact; it has not been published as a Release asset.
+Version 0.1.1 prepares an [Ubuntu 24.04 x86_64 GNU ZIP candidate](docs/install-linux.md).
+It is unreleased; the published v0.1.0 remains source-only. Candidate ZIPs are verification artifacts.
 Rust 1.99.0 is tested on macOS, Linux, and Windows in CI. Desktop clipboard support
 depends on your environment; headless use works with `--no-clipboard`.
 

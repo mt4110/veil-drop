@@ -57,3 +57,6 @@ The candidate ZIP and SHA256SUMS are retained as CI artifacts, never automatical
 uploaded to a Release. Review BUILD.json, runtime library requirements, original
 license texts and final-SHA checks before a separate publication decision.
 Do not change the existing v0.1.0 tag. A candidate filename is not a new release.
+The 0.1.1 preparation PR remains unpublished. Preserve the earlier
+`ubuntu-gnu-candidate-41ef967` draft; rebuild and verify the final merged main SHA
+before attaching final 0.1.1 assets and approving a signed tag/publication.
