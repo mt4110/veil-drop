@@ -1,6 +1,6 @@
 [package]
 name = "veil-drop"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Encrypt short secrets into shareable URL fragments with a static browser receiver"
 license = "MIT"
