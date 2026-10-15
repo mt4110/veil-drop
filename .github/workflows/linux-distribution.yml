@@ -1,0 +1,74 @@
+name: Ubuntu distribution candidate
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ubuntu-distribution-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - id: versions
+        shell: bash
+        run: scripts/read-mise-versions.sh >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: ${{ steps.versions.outputs.node }}
+      - name: Build GNU release with pinned Rust
+        run: |
+          rustup default "${{ steps.versions.outputs.rust }}"
+          rustup target add x86_64-unknown-linux-gnu
+          cargo build --locked --release --target x86_64-unknown-linux-gnu
+      - name: Package binary, selected dependency licenses and Rust runtime notices
+        run: |
+          python3 scripts/package-linux.py --binary target/x86_64-unknown-linux-gnu/release/veil-drop --out target/linux-candidate
+          cd target/linux-candidate
+          sha256sum -c SHA256SUMS
+          unzip -q veil-drop-*-x86_64-unknown-linux-gnu.zip -d extracted
+          cd extracted
+          sha256sum -c SHA256SUMS
+          readelf -h veil-drop > ../elf-header.txt
+          ldd veil-drop > ../runtime-libraries.txt
+      - name: Test extracted CLI in Ubuntu 24.04 without Rust
+        shell: bash
+        run: |
+          node_path="$(readlink -f "$(command -v node)")"
+          docker run --name veil-drop-rustless \
+            --cpus=1 --memory=1g --network=bridge \
+            -v "$PWD/target/linux-candidate/extracted:/candidate:ro" \
+            -v "$PWD/tests:/app/tests:ro" -v "$PWD/docs:/app/docs:ro" \
+            -v "$node_path:/usr/local/bin/node:ro" \
+            -e VEIL_DROP_TEST_BINARY=/candidate/veil-drop \
+            ubuntu:24.04 sh -ec '
+              apt-get update -qq
+              apt-get install -y -qq --no-install-recommends libstdc++6
+              ! command -v rustc
+              ! command -v cargo
+              test "$(uname -m)" = x86_64
+              . /etc/os-release
+              test "$VERSION_ID" = 24.04
+              /candidate/veil-drop --version
+              node --test /app/tests/receiver.test.mjs
+            '
+          docker image inspect ubuntu:24.04 --format '{{json .RepoDigests}}' > target/linux-candidate/runtime-image.json
+          python3 -c 'import json, pathlib, subprocess; pathlib.Path("target/linux-candidate/verification.json").write_text(json.dumps({"source_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(), "runtime": "Ubuntu 24.04 x86_64", "rustc_and_cargo_absent": True, "extracted_cli_webcrypto_tests": "passed", "clipboard": "not tested"}, indent=2) + "\n")'
+      - name: Retain candidate and verification records (no Release publication)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: veil-drop-ubuntu24-x86_64-${{ github.event.pull_request.head.sha || github.sha }}
+          if-no-files-found: error
+          path: |
+            target/linux-candidate/*.zip
+            target/linux-candidate/SHA256SUMS
+            target/linux-candidate/elf-header.txt
+            target/linux-candidate/runtime-libraries.txt
+            target/linux-candidate/verification.json
+            target/linux-candidate/runtime-image.json

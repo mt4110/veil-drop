@@ -28,6 +28,8 @@ veil-drop --version
 ```
 
 ビルド済みバイナリやcrates.ioパッケージは配布していません。
+Ubuntu 24.04 x86_64 GNU版のZIPを[配布候補として準備](docs/install-linux.md)しています。
+まだReleaseへは公開せず、PRの検証用成果物として扱います。
 macOS・Linux・Windowsで、CIが同じRustバージョンを検証します。クリップボードは
 デスクトップ環境により動作が異なります。GUIのない環境では`--no-clipboard`を使います。
 

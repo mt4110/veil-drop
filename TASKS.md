@@ -23,6 +23,9 @@ Follow CONTRIBUTING.md; do not treat this implementation checklist as proof of d
 
 ## Future changes requiring a separate decision
 
+Ubuntu 24.04 x86_64 GNU distribution is prepared as a CI candidate only.
+Publication version, signed tag and Release assets require a separate decision.
+
 - Independent security review before claiming suitability for high-value secrets.
 - An HTTP-header-capable self-host deployment if frame-ancestors protection is needed.
 - Expiry, revocation, and one-time links require a new backend/trust design; do not

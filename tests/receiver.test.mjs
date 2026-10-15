@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { decryptPayload, parseFragment, decodeBase64url } from '../docs/crypto.js';
-const binary = fileURLToPath(new URL(`../target/debug/veil-drop${process.platform === 'win32' ? '.exe' : ''}`, import.meta.url));
+const binary = process.env.VEIL_DROP_TEST_BINARY
+  ?? fileURLToPath(new URL(`../target/debug/veil-drop${process.platform === 'win32' ? '.exe' : ''}`, import.meta.url));
 const b64 = (bytes) => Buffer.from(bytes).toString('base64url');
 const key = new Uint8Array(32);
 const nistPayload = Uint8Array.from(Buffer.from('000000000000000000000000cea7403d4d606b6e074ec5d3baf39d18d0d1c8a799996bf0265b98b5d48ab919', 'hex'));
