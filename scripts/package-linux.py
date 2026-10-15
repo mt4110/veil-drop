@@ -14,6 +14,16 @@ def output(*args):
     return subprocess.check_output(args, text=True).strip()
 
 
+def write_archive(bundle, archive):
+    # Rust distribution files can have epoch timestamps. ZIP starts in 1980;
+    # clamp only unsupported timestamps, retaining bytes and executable modes.
+    with zipfile.ZipFile(archive, 'x', compression=zipfile.ZIP_DEFLATED,
+                         strict_timestamps=False) as z:
+        for path in sorted(bundle.rglob('*')):
+            if path.is_file():
+                z.write(path, path.relative_to(bundle).as_posix())
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', type=Path, required=True)
@@ -100,10 +110,7 @@ def main():
                         + '  ' + path.relative_to(bundle).as_posix())
     (bundle / 'SHA256SUMS').write_text('\n'.join(sums) + '\n')
     archive = args.out / ('veil-drop-' + version + '-' + target + '.zip')
-    with zipfile.ZipFile(archive, 'x', compression=zipfile.ZIP_DEFLATED) as z:
-        for path in sorted(bundle.rglob('*')):
-            if path.is_file():
-                z.write(path, path.relative_to(bundle).as_posix())
+    write_archive(bundle, archive)
     (args.out / 'SHA256SUMS').write_text(hashlib.sha256(archive.read_bytes()).hexdigest()
                                       + '  ' + archive.name + '\n')
     print('Created Linux candidate and notices:', archive.name)

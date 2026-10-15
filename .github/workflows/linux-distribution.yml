@@ -24,6 +24,7 @@ jobs:
           node-version: ${{ steps.versions.outputs.node }}
       - name: Build GNU release with pinned Rust
         run: |
+          python3 -B -m unittest discover -s tests -p package_linux_test.py
           rustup default "${{ steps.versions.outputs.rust }}"
           rustup target add x86_64-unknown-linux-gnu
           rustup component add rust-docs
