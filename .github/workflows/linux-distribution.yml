@@ -51,8 +51,10 @@ jobs:
             ubuntu:24.04 sh -ec '
               apt-get update -qq
               apt-get install -y -qq --no-install-recommends libstdc++6
-              ! command -v rustc
-              ! command -v cargo
+              if command -v rustc || command -v cargo; then
+                echo "Rust must not be installed in the runtime container" >&2
+                exit 1
+              fi
               test "$(uname -m)" = x86_64
               . /etc/os-release
               test "$VERSION_ID" = 24.04
