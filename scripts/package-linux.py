@@ -76,11 +76,13 @@ def main():
     runtime = sysroot / 'share/doc/rust'
     dest = bundle / 'third_party/rust-runtime'
     dest.mkdir(parents=True)
-    for name in ['LICENSE-MIT', 'LICENSE-APACHE', 'COPYRIGHT']:
+    for name in ['COPYRIGHT-library.html', 'COPYRIGHT.html']:
         shutil.copy2(runtime / name, dest / name)
     licenses = runtime / 'licenses'
-    if licenses.is_dir():
-        shutil.copytree(licenses, dest / 'licenses')
+    for name in ['MIT.txt', 'Apache-2.0.txt', 'LLVM-exception.txt']:
+        if not (licenses / name).is_file():
+            raise ValueError('Missing Rust runtime license: ' + name)
+    shutil.copytree(licenses, dest / 'licenses')
     manifest = {'source_revision': revision, 'target': target, 'version': version,
                 'rustc': output('rustc', '-vV'), 'dependencies': inventory,
                 'cargo_lock_sha256': hashlib.sha256((root / 'Cargo.lock').read_bytes()).hexdigest()}
@@ -88,7 +90,7 @@ def main():
     (bundle / 'THIRD_PARTY_NOTICES.md').write_text(
         '# Third-party notices\n\nSelected normal/build dependencies for the Linux target.\n'
         'Original license and notice texts are retained in third_party/.\n'
-        'Rust runtime texts and COPYRIGHT are included separately.\n'
+        'Rust runtime texts and COPYRIGHT-library.html are included separately.\n'
         'System shared libraries are not redistributed. See INSTALL.md for runtime scope.\n\n'
         + ''.join('- {name} {version}: {license}\n'.format(**p) for p in inventory))
     sums = []
