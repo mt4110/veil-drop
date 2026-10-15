@@ -44,3 +44,16 @@ Do not move or replace a published release tag. Publish a new patch version for
 fixes. GitHub Pages follows checked `main`, not a tag; the receiver can therefore
 change after a source release. For a pinned receiver, self-host `docs/` from a
 verified tag and protect the hosting account.
+
+## Ubuntu distribution candidate
+
+The separate `Ubuntu distribution candidate` workflow builds the GNU release on
+Ubuntu 24.04, packages the selected dependency and Rust runtime license texts,
+and tests the extracted binary in another Ubuntu 24.04 container without Rust.
+`VEIL_DROP_TEST_BINARY` selects that binary for the existing Web Crypto tests;
+without it, local tests keep using `target/debug/veil-drop`.
+
+The candidate ZIP and SHA256SUMS are retained as CI artifacts, never automatically
+uploaded to a Release. Review BUILD.json, runtime library requirements, original
+license texts and final-SHA checks before a separate publication decision.
+Do not change the existing v0.1.0 tag. A candidate filename is not a new release.

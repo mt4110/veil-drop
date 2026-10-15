@@ -27,6 +27,8 @@ veil-drop --version
 ```
 
 The project is source-only: there are no prebuilt binaries or crates.io package.
+An [Ubuntu 24.04 x86_64 GNU ZIP candidate](docs/install-linux.md) is being prepared
+as a reviewed CI artifact; it has not been published as a Release asset.
 Rust 1.99.0 is tested on macOS, Linux, and Windows in CI. Desktop clipboard support
 depends on your environment; headless use works with `--no-clipboard`.
 
