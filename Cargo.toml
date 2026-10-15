@@ -21,7 +21,7 @@ path = "src/bin/veil-drop.rs"
 
 [dependencies]
 # --- 暗号化 ---
-aes-gcm = "0.10"          # AES-256-GCM (AEAD)
+aes-gcm = "0.11"          # AES-256-GCM (AEAD)
 
 # --- エンコーディング ---
 base64 = "0.22"           # Base64URL (No Padding) エンコード
