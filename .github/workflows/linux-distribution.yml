@@ -26,6 +26,7 @@ jobs:
         run: |
           rustup default "${{ steps.versions.outputs.rust }}"
           rustup target add x86_64-unknown-linux-gnu
+          rustup component add rust-docs
           cargo build --locked --release --target x86_64-unknown-linux-gnu
       - name: Package binary, selected dependency licenses and Rust runtime notices
         run: |
