@@ -65,7 +65,7 @@ jobs:
           docker image inspect ubuntu:24.04 --format '{{json .RepoDigests}}' > target/linux-candidate/runtime-image.json
           python3 -c 'import json, pathlib, subprocess; pathlib.Path("target/linux-candidate/verification.json").write_text(json.dumps({"source_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(), "runtime": "Ubuntu 24.04 x86_64", "rustc_and_cargo_absent": True, "extracted_cli_webcrypto_tests": "passed", "clipboard": "not tested"}, indent=2) + "\n")'
       - name: Retain candidate and verification records (no Release publication)
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: veil-drop-ubuntu24-x86_64-${{ github.event.pull_request.head.sha || github.sha }}
           if-no-files-found: error
