@@ -8,9 +8,9 @@
     "lint:markdown": "markdownlint-cli2"
   },
   "engines": {
-    "node": "24.21.0"
+    "node": "24.22.1"
   },
   "devDependencies": {
-    "markdownlint-cli2": "0.23.3"
+    "markdownlint-cli2": "0.24.0"
   }
 }

@@ -141,7 +141,7 @@ mise exec -- npm run lint:markdown
 mise exec -- npm test
 ```
 
-Rust 1.99.0 and Node.js 24.21.0 are pinned in `mise.toml`. `mise.lock` records the
+Rust 1.99.0 and Node.js 24.22.1 are pinned in `mise.toml`. `mise.lock` records the
 Node.js download URLs and SHA-256 checksums for five platforms. CI reads the same
 versions from mise. `mise install --locked` applies these pins without resolving
 newer tool releases.
