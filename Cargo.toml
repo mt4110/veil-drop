@@ -1,6 +1,6 @@
 [package]
 name = "veil-drop"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 description = "Encrypt short secrets into shareable URL fragments with a static browser receiver"
 license = "MIT"
@@ -32,7 +32,7 @@ dialoguer = "0.12"        # パスワードプロンプト (非表示入力)
 
 # --- クリップボード ---
 arboard = { version = "3", default-features = false } # テキストのみ
-url = "2.5"              # 標準URLパーサーで受信先を検証
+url = "2.5.9"              # 標準URLパーサーで受信先を検証
 
 # --- エラーハンドリング ---
 anyhow = "1"              # エラー伝播の簡略化

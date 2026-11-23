@@ -1,5 +1,8 @@
-name: Ubuntu distribution candidate
+name: Ubuntu distribution
 on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
   pull_request:
   workflow_dispatch:
 permissions:
@@ -11,6 +14,8 @@ jobs:
   package:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    env:
+      RUNTIME_IMAGE: ubuntu:24.04@sha256:9c7f200c07e3d4a03e7249d2c16bf66a51120fb876aa2242cf31451412543289
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -24,14 +29,13 @@ jobs:
           node-version: ${{ steps.versions.outputs.node }}
       - name: Build GNU release with pinned Rust
         run: |
-          python3 -B -m unittest discover -s tests -p package_linux_test.py
           rustup default "${{ steps.versions.outputs.rust }}"
           rustup target add x86_64-unknown-linux-gnu
           rustup component add rust-docs
           cargo build --locked --release --target x86_64-unknown-linux-gnu
       - name: Package binary, selected dependency licenses and Rust runtime notices
         run: |
-          python3 scripts/package-linux.py --binary target/x86_64-unknown-linux-gnu/release/veil-drop --out target/linux-candidate
+          node scripts/package-linux.mjs target/x86_64-unknown-linux-gnu/release/veil-drop target/linux-candidate
           cd target/linux-candidate
           sha256sum -c SHA256SUMS
           unzip -q veil-drop-*-x86_64-unknown-linux-gnu.zip -d extracted
@@ -43,15 +47,13 @@ jobs:
         shell: bash
         run: |
           node_path="$(readlink -f "$(command -v node)")"
-          docker run --name veil-drop-rustless \
-            --cpus=1 --memory=1g --network=bridge \
+          docker run --rm --name veil-drop-rustless \
+            --cpus=1 --memory=1g --network=none \
             -v "$PWD/target/linux-candidate/extracted:/candidate:ro" \
             -v "$PWD/tests:/app/tests:ro" -v "$PWD/docs:/app/docs:ro" \
             -v "$node_path:/usr/local/bin/node:ro" \
             -e VEIL_DROP_TEST_BINARY=/candidate/veil-drop \
-            ubuntu:24.04 sh -ec '
-              apt-get update -qq
-              apt-get install -y -qq --no-install-recommends libstdc++6
+            "$RUNTIME_IMAGE" sh -ec '
               if command -v rustc || command -v cargo; then
                 echo "Rust must not be installed in the runtime container" >&2
                 exit 1
@@ -62,12 +64,12 @@ jobs:
               /candidate/veil-drop --version
               node --test /app/tests/receiver.test.mjs
             '
-          docker image inspect ubuntu:24.04 --format '{{json .RepoDigests}}' > target/linux-candidate/runtime-image.json
-          python3 -c 'import json, pathlib, subprocess; pathlib.Path("target/linux-candidate/verification.json").write_text(json.dumps({"source_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(), "runtime": "Ubuntu 24.04 x86_64", "rustc_and_cargo_absent": True, "extracted_cli_webcrypto_tests": "passed", "clipboard": "not tested"}, indent=2) + "\n")'
-      - name: Retain candidate and verification records (no Release publication)
+          docker image inspect "$RUNTIME_IMAGE" --format '{{json .RepoDigests}}' > target/linux-candidate/runtime-image.json
+          jq -n --arg revision "$(git rev-parse HEAD)" '{source_revision: $revision, runtime: "Ubuntu 24.04 x86_64", rustc_and_cargo_absent: true, extracted_cli_webcrypto_tests: "passed", clipboard: "not tested"}' > target/linux-candidate/verification.json
+      - name: Retain package and verification records
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: veil-drop-ubuntu24-x86_64-${{ github.event.pull_request.head.sha || github.sha }}
+          name: veil-drop-ubuntu24-x86_64
           if-no-files-found: error
           path: |
             target/linux-candidate/*.zip
@@ -76,3 +78,39 @@ jobs:
             target/linux-candidate/runtime-libraries.txt
             target/linux-candidate/verification.json
             target/linux-candidate/runtime-image.json
+
+  attest:
+    if: github.ref_type == 'tag' && github.event_name == 'push'
+    needs: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: veil-drop-ubuntu24-x86_64
+          path: dist
+      - name: Verify distribution checksum
+        working-directory: dist
+        run: sha256sum --strict -c SHA256SUMS
+      - id: provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            dist/*.zip
+            dist/SHA256SUMS
+      - name: Copy release provenance
+        env:
+          ATTESTATION_BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+        run: cp -- "$ATTESTATION_BUNDLE" dist/veil-drop.sigstore.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: veil-drop-release
+          if-no-files-found: error
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS
+            dist/veil-drop.sigstore.json

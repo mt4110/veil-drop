@@ -1,6 +1,13 @@
 # Changelog
 
-## 0.1.1 — Unreleased
+## 0.2.0
+
+- Publish the Ubuntu 24.04 x86_64 GNU ZIP from the signed release tag.
+- Attach GitHub build provenance for the ZIP and its checksum.
+- Update url, rustix and the Markdown lint toolchain to address dependency advisories.
+- Use the pinned Node.js toolchain for the Linux packaging workflow.
+
+## 0.1.1 — 2026-10-15
 
 - Make Japanese the default README and add an English version
   with language links at the top of both files.
@@ -17,9 +24,7 @@
 - Update dialoguer to 0.12 and thiserror to 2; maintain locked dependencies and
   update the GitHub Pages deployment actions.
 
-This prepares the first prebuilt distribution. It is not published yet. The
-cryptographic protocol and receiver behavior remain unchanged from v0.1.0.
-The published v0.1.0 and the earlier 0.1.0 distribution candidate remain unchanged.
+This was the first prebuilt distribution.
 
 ## 0.1.0 — 2026-10-02
 
