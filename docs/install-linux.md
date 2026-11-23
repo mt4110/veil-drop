@@ -1,7 +1,4 @@
-# 0.1.1 Ubuntu 24.04 x86_64向け配布候補
-
-この手順は未公開の0.1.1 GNU版候補用です。現在の公開v0.1.0はソース配布のみで、
-ビルド済みZIPの公開は別途判断します。公開済みタグは移動しません。
+# Ubuntu 24.04 x86_64 向けインストール
 
 対象はUbuntu 24.04 x86_64です。musl静的版ではなく、システムのglibc等を使います。
 他ディストリビューション・旧glibc・ARM64への対応や性能は保証しません。
@@ -9,21 +6,22 @@
 
 ## 取得済みZIPから使う
 
-レビュー用成果物のZIPと外側のSHA256SUMSを、新しい同じディレクトリへ保存します。
+GitHub ReleaseのZIP、SHA256SUMS、veil-drop.sigstore.jsonを、新しい同じディレクトリへ保存します。
 Rust・Git・Node.jsは通常利用に不要です。展開にはunzipを使います。
 
 ```sh
-sha256sum --ignore-missing -c SHA256SUMS &&
-unzip veil-drop-0.1.1-x86_64-unknown-linux-gnu.zip -d cli &&
+gh attestation verify veil-drop-0.2.0-x86_64-unknown-linux-gnu.zip \
+  --repo mt4110/veil-drop --source-ref refs/tags/v0.2.0 \
+  --signer-workflow mt4110/veil-drop/.github/workflows/linux-distribution.yml \
+  --bundle veil-drop.sigstore.json &&
+sha256sum --strict -c SHA256SUMS &&
+unzip veil-drop-0.2.0-x86_64-unknown-linux-gnu.zip -d cli &&
 (cd cli && sha256sum -c SHA256SUMS) &&
 ./cli/veil-drop --version
 ```
 
-ZIP名のOK、内部ファイルのOK、`veil-drop 0.1.1`を確認します。
-同じ版番号の候補はBUILD.jsonのsource_revisionと外側のチェックサムで区別します。
-旧候補 `ubuntu-gnu-candidate-41ef967` のZIPは内部版番号0.1.0で、この0.1.1候補とは別です。
-公開前にマージ後の最終SHAから再生成・検証し、署名タグと公開を別途判断します。
-チェックサムは一致確認であり、独立した発行者署名の代わりではありません。
+ZIP名のOK、内部ファイルのOK、`veil-drop 0.2.0`を確認します。
+GitHub CLI（gh）は来歴の検証に使います。BUILD.jsonにはソースのコミットとツールチェーンを記録しています。
 INSTALL.md・LICENSE・SECURITY.md・第三者表記は実行ファイルと一緒に保持してください。
 
 端末で以下を起動し、非表示プロンプトへ入力します。動作確認には架空の短文を使います。

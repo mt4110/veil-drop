@@ -1,5 +1,8 @@
-name: Ubuntu distribution candidate
+name: Ubuntu distribution
 on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
   pull_request:
   workflow_dispatch:
 permissions:
@@ -24,14 +27,13 @@ jobs:
           node-version: ${{ steps.versions.outputs.node }}
       - name: Build GNU release with pinned Rust
         run: |
-          python3 -B -m unittest discover -s tests -p package_linux_test.py
           rustup default "${{ steps.versions.outputs.rust }}"
           rustup target add x86_64-unknown-linux-gnu
           rustup component add rust-docs
           cargo build --locked --release --target x86_64-unknown-linux-gnu
       - name: Package binary, selected dependency licenses and Rust runtime notices
         run: |
-          python3 scripts/package-linux.py --binary target/x86_64-unknown-linux-gnu/release/veil-drop --out target/linux-candidate
+          node scripts/package-linux.mjs target/x86_64-unknown-linux-gnu/release/veil-drop target/linux-candidate
           cd target/linux-candidate
           sha256sum -c SHA256SUMS
           unzip -q veil-drop-*-x86_64-unknown-linux-gnu.zip -d extracted
@@ -63,11 +65,11 @@ jobs:
               node --test /app/tests/receiver.test.mjs
             '
           docker image inspect ubuntu:24.04 --format '{{json .RepoDigests}}' > target/linux-candidate/runtime-image.json
-          python3 -c 'import json, pathlib, subprocess; pathlib.Path("target/linux-candidate/verification.json").write_text(json.dumps({"source_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(), "runtime": "Ubuntu 24.04 x86_64", "rustc_and_cargo_absent": True, "extracted_cli_webcrypto_tests": "passed", "clipboard": "not tested"}, indent=2) + "\n")'
-      - name: Retain candidate and verification records (no Release publication)
+          jq -n --arg revision "$(git rev-parse HEAD)" '{source_revision: $revision, runtime: "Ubuntu 24.04 x86_64", rustc_and_cargo_absent: true, extracted_cli_webcrypto_tests: "passed", clipboard: "not tested"}' > target/linux-candidate/verification.json
+      - name: Retain package and verification records
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: veil-drop-ubuntu24-x86_64-${{ github.event.pull_request.head.sha || github.sha }}
+          name: veil-drop-ubuntu24-x86_64
           if-no-files-found: error
           path: |
             target/linux-candidate/*.zip
@@ -76,3 +78,39 @@ jobs:
             target/linux-candidate/runtime-libraries.txt
             target/linux-candidate/verification.json
             target/linux-candidate/runtime-image.json
+
+  attest:
+    if: github.ref_type == 'tag' && github.event_name == 'push'
+    needs: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: veil-drop-ubuntu24-x86_64
+          path: dist
+      - name: Verify distribution checksum
+        working-directory: dist
+        run: sha256sum --strict -c SHA256SUMS
+      - id: provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            dist/*.zip
+            dist/SHA256SUMS
+      - name: Copy release provenance
+        env:
+          ATTESTATION_BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+        run: cp -- "$ATTESTATION_BUNDLE" dist/veil-drop.sigstore.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: veil-drop-release
+          if-no-files-found: error
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS
+            dist/veil-drop.sigstore.json
