@@ -14,6 +14,8 @@ jobs:
   package:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    env:
+      RUNTIME_IMAGE: ubuntu:24.04@sha256:9c7f200c07e3d4a03e7249d2c16bf66a51120fb876aa2242cf31451412543289
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -45,15 +47,13 @@ jobs:
         shell: bash
         run: |
           node_path="$(readlink -f "$(command -v node)")"
-          docker run --name veil-drop-rustless \
-            --cpus=1 --memory=1g --network=bridge \
+          docker run --rm --name veil-drop-rustless \
+            --cpus=1 --memory=1g --network=none \
             -v "$PWD/target/linux-candidate/extracted:/candidate:ro" \
             -v "$PWD/tests:/app/tests:ro" -v "$PWD/docs:/app/docs:ro" \
             -v "$node_path:/usr/local/bin/node:ro" \
             -e VEIL_DROP_TEST_BINARY=/candidate/veil-drop \
-            ubuntu:24.04 sh -ec '
-              apt-get update -qq
-              apt-get install -y -qq --no-install-recommends libstdc++6
+            "$RUNTIME_IMAGE" sh -ec '
               if command -v rustc || command -v cargo; then
                 echo "Rust must not be installed in the runtime container" >&2
                 exit 1
@@ -64,7 +64,7 @@ jobs:
               /candidate/veil-drop --version
               node --test /app/tests/receiver.test.mjs
             '
-          docker image inspect ubuntu:24.04 --format '{{json .RepoDigests}}' > target/linux-candidate/runtime-image.json
+          docker image inspect "$RUNTIME_IMAGE" --format '{{json .RepoDigests}}' > target/linux-candidate/runtime-image.json
           jq -n --arg revision "$(git rev-parse HEAD)" '{source_revision: $revision, runtime: "Ubuntu 24.04 x86_64", rustc_and_cargo_absent: true, extracted_cli_webcrypto_tests: "passed", clipboard: "not tested"}' > target/linux-candidate/verification.json
       - name: Retain package and verification records
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
